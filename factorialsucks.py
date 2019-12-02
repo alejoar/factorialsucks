@@ -42,20 +42,12 @@ period_id = None
 
 
 parser = argparse.ArgumentParser(description="Factorial auto clock in")
+parser.add_argument("-y", "--year", metavar="YYYY", type=int, nargs=1)
+parser.add_argument("-m", "--month", metavar="MM", type=int, nargs=1)
 parser.add_argument(
-    "-y", "--year", metavar="YYYY", type=int, nargs=1, help="the year"
+    "-e", "--email", metavar="user@host.com", type=str, nargs=1
 )
-parser.add_argument(
-    "-m", "--month", metavar="MM", type=int, nargs=1, help="the month"
-)
-parser.add_argument(
-    "-e",
-    "--email",
-    metavar="user@host.com",
-    type=str,
-    nargs=1,
-    help="the email",
-)
+parser.add_argument("-dr", "--dry-run", action="store_true")
 
 args = parser.parse_args()
 
@@ -83,7 +75,6 @@ async def main():
     browser = await pyppeteer.launch(headless=True)
     page = await browser.newPage()
     kb = pyppeteer.input.Keyboard(client=page._client)
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
     await page.goto(URL_SIGN_IN)
     await page.type('input[name="user[email]"]', email)
     await page.type("#user_password", password)
@@ -131,7 +122,7 @@ async def main():
             leave = await page.evaluate(SELECTORS["leave"], tr,)
         except pyppeteer.errors.ElementHandleError:
             pass
-        print(month_day, end="... ")
+        print(month_day, end="... ", flush=True)
         if leave:
             print("❌", leave)
             continue
@@ -144,9 +135,10 @@ async def main():
         body["day"] = int(day)
         request_params["body"] = f"{json.dumps(body)}"
         await page.evaluate(f"temp = {json.dumps(request_params)}")
-        await page.evaluate(
-            f"fetch('https://api.factorialhr.com/attendance/shifts', temp)"
-        )
+        if not args.dry_run:
+            await page.evaluate(
+                f"fetch('https://api.factorialhr.com/attendance/shifts', temp)"
+            )
         print("✅")
     await browser.close()
     print("done!")
