@@ -13,3 +13,5 @@ optional arguments:
   -e user@host.com, --email user@host.com
   -dr, --dry-run
   ```
+
+[![asciicast](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux.svg)](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux)
