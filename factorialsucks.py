@@ -10,7 +10,26 @@ import pyppeteer
 
 URL_SIGN_IN = "https://factorialhr.com/users/sign_in"
 URL_CLOCK_IN = "https://app.factorialhr.com/attendance/clock-in"
-VALID_WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+WEEKEND_DAYS = [
+    "Saturday",
+    "Sunday",
+    "sábado",
+    "domingo",
+    "dissabte",
+    "diumenge",
+    "zaterdag",
+    "zondag",
+    "sabato",
+    "domenica",
+    "lördag",
+    "söndag",
+    "Samstag",
+    "Sonntag",
+    "samedi",
+    "dimanche",
+    "Sábado",
+    "Domingo",
+]
 
 SELECTORS = {
     "leave": "(elem) => elem.querySelector('div[class*=\"leaveContent\"]').textContent",  # noqa
@@ -126,7 +145,7 @@ async def main():
         if leave:
             print("❌", leave)
             continue
-        elif week_day not in VALID_WEEKDAYS:
+        elif week_day in WEEKEND_DAYS:
             print("❌", week_day)
             continue
         elif inputed_hours != "0h":
