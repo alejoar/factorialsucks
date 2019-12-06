@@ -7,6 +7,8 @@ import sys
 
 import pyppeteer
 
+from halo import Halo
+
 
 URL_SIGN_IN = "https://factorialhr.com/users/sign_in"
 URL_CLOCK_IN = "https://app.factorialhr.com/attendance/clock-in"
@@ -59,7 +61,6 @@ body = {
 
 period_id = None
 
-
 parser = argparse.ArgumentParser(description="Factorial auto clock in")
 parser.add_argument("-y", "--year", metavar="YYYY", type=int, nargs=1)
 parser.add_argument("-m", "--month", metavar="MM", type=int, nargs=1)
@@ -69,6 +70,7 @@ parser.add_argument(
 parser.add_argument("-dr", "--dry-run", action="store_true")
 
 args = parser.parse_args()
+spinner = Halo(color="white", spinner="dots", interval=30.0)
 
 if any((args.year, args.month)) and not all((args.year, args.month)):
     sys.exit("Either both year ar month need s to be provided, or none")
@@ -91,6 +93,8 @@ async def main():
         sys.exit("Email not valid")
         return
     password = getpass.getpass()
+    spinner.start()
+    spinner.text = "Logging in.."
     browser = await pyppeteer.launch(headless=True)
     page = await browser.newPage()
     kb = pyppeteer.input.Keyboard(client=page._client)
@@ -103,6 +107,8 @@ async def main():
         login_errors = await page.querySelector("ul.js-errors")
         error = await page.evaluate("(elem) => elem.textContent", login_errors)
         if error:
+            await browser.close()
+            spinner.stop()
             print("Could not log in:", error)
             return
     except (
@@ -120,14 +126,17 @@ async def main():
         if args.year and args.month
         else URL_CLOCK_IN
     )
+    spinner.text = "Redirecting.."
     await page.goto(clock_in_url)
     await page.waitForNavigation(waitUntil="networkidle0")
     while not period_id:
+        spinner.text = "Obtaining period ID.."
         await asyncio.sleep(1)
     body["period_id"] = period_id
 
     trs = await page.querySelectorAll("tr")
     for tr in trs:
+        spinner.start()
         try:
             week_day = await page.evaluate(SELECTORS["weekd"], tr,)
             month_day = await page.evaluate(SELECTORS["date"], tr,)
@@ -141,15 +150,16 @@ async def main():
             leave = await page.evaluate(SELECTORS["leave"], tr,)
         except pyppeteer.errors.ElementHandleError:
             pass
-        print(month_day, end="... ", flush=True)
+        spinner.placement = "right"
+        spinner.text = f"{month_day}... "
         if leave:
-            print("❌", leave)
+            spinner.stop_and_persist(f"❌ {leave}")
             continue
         elif week_day in WEEKEND_DAYS:
-            print("❌", week_day)
+            spinner.stop_and_persist(f"❌ {week_day}")
             continue
         elif inputed_hours != "0h":
-            print("❌ Already clocked in")
+            spinner.stop_and_persist(f"❌ Already clocked in")
             continue
         body["day"] = int(day)
         request_params["body"] = f"{json.dumps(body)}"
@@ -158,9 +168,9 @@ async def main():
             await page.evaluate(
                 f"fetch('https://api.factorialhr.com/attendance/shifts', temp)"
             )
-        print("✅")
+        spinner.stop_and_persist(f"✅")
     await browser.close()
     print("done!")
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
