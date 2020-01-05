@@ -35,7 +35,7 @@ WEEKEND_DAYS = [
 
 SELECTORS = {
     "leave": "(elem) => elem.querySelector('div[class*=\"leaveContent\"]').textContent",  # noqa
-    "hours": "(elem) => elem.querySelector('td[class*=\"short\"] > span').textContent",  # noqa
+    "hours": "(elem) => elem.querySelector('td:nth-child(4)').textContent",  # noqa
     "date": "(elem) => elem.querySelector('div[class*=\"monthDay\"]').textContent",  # noqa
     "weekd": "(elem) => elem.querySelector('div[class*=\"weekDay\"]').textContent",  # noqa
 }
@@ -95,7 +95,7 @@ async def main():
     password = getpass.getpass()
     spinner.start()
     spinner.text = "Logging in.."
-    browser = await pyppeteer.launch(headless=True)
+    browser = await pyppeteer.launch(headless=False)
     page = await browser.newPage()
     kb = pyppeteer.input.Keyboard(client=page._client)
     await page.goto(URL_SIGN_IN)
