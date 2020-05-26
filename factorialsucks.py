@@ -60,6 +60,7 @@ body = {
 }
 
 period_id = None
+initial_nav_done = False
 
 parser = argparse.ArgumentParser(description="Factorial auto clock in")
 parser.add_argument("-y", "--year", metavar="YYYY", type=int, nargs=1)
@@ -77,10 +78,17 @@ if any((args.year, args.month)) and not all((args.year, args.month)):
 
 
 async def request_interceptor(req):
-    global period_id
+    global period_id, initial_nav_done
     await req.continue_()
     if "https://api.factorialhr.com/attendance/periods/" in req.url:
         period_id = req.url.split("/")[-1]
+        initial_nav_done = True
+
+
+async def response_interceptor(res):
+    global initial_nav_done
+    if "https://api.factorialhr.com/sessions" in res.url:
+        initial_nav_done = True
 
 
 async def main():
@@ -97,6 +105,14 @@ async def main():
     spinner.text = "Logging in.."
     browser = await pyppeteer.launch(headless=False)
     page = await browser.newPage()
+    await page.setRequestInterception(True)
+    page.on(
+        "request", lambda req: asyncio.ensure_future(request_interceptor(req))
+    )
+    page.on(
+        "response",
+        lambda res: asyncio.ensure_future(response_interceptor(res)),
+    )
     kb = pyppeteer.input.Keyboard(client=page._client)
     await page.goto(URL_SIGN_IN)
     await page.type('input[name="user[email]"]', email)
@@ -116,18 +132,18 @@ async def main():
         pyppeteer.errors.ElementHandleError,
     ):
         pass
-    await page.waitForNavigation()
-    await page.setRequestInterception(True)
-    page.on(
-        "request", lambda req: asyncio.ensure_future(request_interceptor(req))
-    )
+
+    spinner.text = "Waiting for factorial.."
+    while not initial_nav_done:
+        await asyncio.sleep(1)
+
     clock_in_url = (
         f"{URL_CLOCK_IN}/{args.year[0]}/{args.month[0]}"
         if args.year and args.month
         else URL_CLOCK_IN
     )
-    spinner.text = "Redirecting.."
     await page.goto(clock_in_url)
+    spinner.text = "Still waiting for factorial.."
     await page.waitForNavigation(waitUntil="networkidle0")
     while not period_id:
         spinner.text = "Obtaining period ID.."
