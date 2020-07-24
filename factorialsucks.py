@@ -4,6 +4,7 @@ import getpass
 import json
 import re
 import sys
+from datetime import datetime
 
 import pyppeteer
 
@@ -34,7 +35,7 @@ WEEKEND_DAYS = [
 ]
 
 SELECTORS = {
-    "leave": "(elem) => elem.querySelector('div[class*=\"leaveContent\"]').textContent",  # noqa
+    "leave": "(elem) => elem.querySelector('td:first-child>div>div:nth-child(3').textContent",  # noqa
     "hours": "(elem) => elem.querySelector('td:nth-child(4)').textContent",  # noqa
     "date": "(elem) => elem.querySelector('div[class*=\"monthDay\"]').textContent",  # noqa
     "weekd": "(elem) => elem.querySelector('div[class*=\"weekDay\"]').textContent",  # noqa
@@ -87,7 +88,7 @@ async def request_interceptor(req):
 
 async def response_interceptor(res):
     global initial_nav_done
-    if "https://api.factorialhr.com/sessions" in res.url:
+    if "https://api.factorialhr.com/teams" in res.url:
         initial_nav_done = True
 
 
@@ -118,9 +119,9 @@ async def main():
     await page.type('input[name="user[email]"]', email)
     await page.type("#user_password", password)
     await kb.press("Enter")
-    await asyncio.sleep(0.5)
+    await asyncio.sleep(1)
     try:
-        login_errors = await page.querySelector("ul.js-errors")
+        login_errors = await page.querySelector(".flash--wrong")
         error = await page.evaluate("(elem) => elem.textContent", login_errors)
         if error:
             await browser.close()
@@ -137,10 +138,11 @@ async def main():
     while not initial_nav_done:
         await asyncio.sleep(1)
 
+    now = datetime.now()
     clock_in_url = (
         f"{URL_CLOCK_IN}/{args.year[0]}/{args.month[0]}"
         if args.year and args.month
-        else URL_CLOCK_IN
+        else f"{URL_CLOCK_IN}/{now.year}/{now.month}"
     )
     await page.goto(clock_in_url)
     spinner.text = "Still waiting for factorial.."
