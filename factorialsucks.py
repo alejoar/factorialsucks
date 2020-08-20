@@ -52,8 +52,6 @@ request_params = {
 }
 
 body = {
-    "clock_in": "10:00",
-    "clock_out": "18:00",
     "minutes": 0,
     "day": 5,
     "observations": None,
@@ -67,15 +65,44 @@ parser = argparse.ArgumentParser(description="Factorial auto clock in")
 parser.add_argument("-y", "--year", metavar="YYYY", type=int, nargs=1)
 parser.add_argument("-m", "--month", metavar="MM", type=int, nargs=1)
 parser.add_argument(
-    "-e", "--email", metavar="user@host.com", type=str, nargs=1
+    "-ci", "--clock-in", metavar="HH:MM", type=str, nargs=1, default="10:00"
 )
+parser.add_argument(
+    "-co", "--clock-out", metavar="HH:MM", type=str, nargs=1, default="18:00"
+)
+parser.add_argument("-e", "--email", metavar="user@host.com", type=str, nargs=1)
 parser.add_argument("-dr", "--dry-run", action="store_true")
 
 args = parser.parse_args()
 spinner = Halo(color="white", spinner="dots", interval=30.0)
 
 if any((args.year, args.month)) and not all((args.year, args.month)):
-    sys.exit("Either both year ar month need s to be provided, or none")
+    sys.exit("Either both year and month needs to be provided, or none for current")
+
+for argu in ("clock_in", "clock_out"):
+    if isinstance(getattr(args, argu), list):
+        value = getattr(args, argu)[0].split(":")
+        try:
+            if (
+                len(value) != 2
+                or int(value[0]) < 0
+                or int(value[0]) > 23
+                or int(value[1]) < 0
+                or int(value[1]) > 59
+            ):
+                sys.exit(
+                    f"Invalid value for {argu.replace('_', '-')}, please use HH:MM"
+                )
+        except ValueError:
+            sys.exit(f"Invalid value for {argu.replace('_', '-')}, please use HH:MM")
+
+
+body["clock_in"] = (
+    args.clock_in[0] if isinstance(args.clock_in, list) else args.clock_in
+)
+body["clock_out"] = (
+    args.clock_out[0] if isinstance(args.clock_out, list) else args.clock_out
+)
 
 
 async def request_interceptor(req):
@@ -107,12 +134,9 @@ async def main():
     browser = await pyppeteer.launch(headless=False)
     page = await browser.newPage()
     await page.setRequestInterception(True)
+    page.on("request", lambda req: asyncio.ensure_future(request_interceptor(req)))
     page.on(
-        "request", lambda req: asyncio.ensure_future(request_interceptor(req))
-    )
-    page.on(
-        "response",
-        lambda res: asyncio.ensure_future(response_interceptor(res)),
+        "response", lambda res: asyncio.ensure_future(response_interceptor(res)),
     )
     kb = pyppeteer.input.Keyboard(client=page._client)
     await page.goto(URL_SIGN_IN)
@@ -177,7 +201,7 @@ async def main():
             spinner.stop_and_persist(f"❌ {week_day}")
             continue
         elif inputed_hours != "0h":
-            spinner.stop_and_persist(f"❌ Already clocked in")
+            spinner.stop_and_persist("❌ Already clocked in")
             continue
         body["day"] = int(day)
         request_params["body"] = f"{json.dumps(body)}"
@@ -186,7 +210,7 @@ async def main():
             await page.evaluate(
                 f"fetch('https://api.factorialhr.com/attendance/shifts', temp)"
             )
-        spinner.stop_and_persist(f"✅")
+        spinner.stop_and_persist(f"✅ {body['clock_in']} - {body['clock_out']}")
     await browser.close()
     print("done!")
 
