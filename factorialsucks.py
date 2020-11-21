@@ -13,6 +13,7 @@ from halo import Halo
 
 URL_SIGN_IN = "https://factorialhr.com/users/sign_in"
 URL_CLOCK_IN = "https://app.factorialhr.com/attendance/clock-in"
+API_URL = "https://api.factorialhr.com"
 WEEKEND_DAYS = [
     "Saturday",
     "Sunday",
@@ -108,14 +109,23 @@ body["clock_out"] = (
 async def request_interceptor(req):
     global period_id, initial_nav_done
     await req.continue_()
-    if "https://api.factorialhr.com/attendance/periods/" in req.url:
-        period_id = req.url.split("/")[-1]
-        initial_nav_done = True
+    # if f"{API_URL}/attendance/periods" in req.url:
+    #     period_id = req.url.split("/")[-1]
+    #     initial_nav_done = True
 
 
 async def response_interceptor(res):
-    global initial_nav_done
-    if "https://api.factorialhr.com/teams" in res.url:
+    global initial_nav_done, period_id
+    if f"{API_URL}/teams" in res.url:
+        initial_nav_done = True
+    if f"{API_URL}/attendance/periods" in res.url:
+        if res.request.method == "GET":
+            try:
+                data = await res.json()
+                if data and "id" in data[0]:
+                    period_id = data[0]["id"]
+            except json.decoder.JSONDecodeError:
+                pass
         initial_nav_done = True
 
 
@@ -208,7 +218,7 @@ async def main():
         await page.evaluate(f"temp = {json.dumps(request_params)}")
         if not args.dry_run:
             await page.evaluate(
-                f"fetch('https://api.factorialhr.com/attendance/shifts', temp)"
+                f"fetch('{API_URL}/attendance/shifts', temp)"
             )
         spinner.stop_and_persist(f"✅ {body['clock_in']} - {body['clock_out']}")
     await browser.close()
