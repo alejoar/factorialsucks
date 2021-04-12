@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -13,6 +11,7 @@ import (
 
 func main() {
 	log.SetFlags(0)
+	today := time.Now()
 	app := &cli.App{
 		Name:            "factorialsucks",
 		Usage:           "FactorialHR auto clock in for the whole month from the command line",
@@ -27,17 +26,19 @@ func main() {
 				Aliases: []string{"e"},
 				Usage:   "you factorial email address",
 			},
-			&cli.Int64Flag{
+			&cli.IntFlag{
 				Name:        "year",
 				Aliases:     []string{"y"},
 				Usage:       "clock-in year `YYYY`",
 				DefaultText: "current year",
+				Value:       today.Year(),
 			},
-			&cli.Int64Flag{
+			&cli.IntFlag{
 				Name:        "month",
 				Aliases:     []string{"m"},
 				Usage:       "clock-in month `MM`",
 				DefaultText: "current month",
+				Value:       int(today.Month()),
 			},
 			&cli.StringFlag{
 				Name:    "clock-in",
@@ -68,22 +69,14 @@ func main() {
 
 func factorialsucks(c *cli.Context) error {
 	email, password := readCredentials(c)
+	year := c.Int("year")
+	month := c.Int("month")
+	clock_in := c.String("clock-in")
+	clock_out := c.String("clock-out")
+	dry_run := c.Bool("dry-run")
 
-	// debug
-	fmt.Println()
-	fmt.Println("email", email)
-	fmt.Println("password", password)
-	fmt.Println("year", c.Int64("year"))
-	fmt.Println("month", c.Int64("month"))
-	fmt.Println("clock-in", c.String("clock-in"))
-	fmt.Println("clock-out", c.String("clock-out"))
-	fmt.Println("dry-run", c.Bool("dry-run"))
-	// /debug
-
-	client := factorial.NewFactorialClient(email, password)
-	resp, _ := client.Get("https://api.factorialhr.com/attendance/shifts?year=2021&month=3&employee_id=81638")
-	data, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(data))
+	client := factorial.NewFactorialClient(email, password, year, month, clock_in, clock_out)
+	client.ClockIn(dry_run)
 
 	return nil
 }
