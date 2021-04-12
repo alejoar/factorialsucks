@@ -2,6 +2,7 @@ package factorial
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -56,10 +57,18 @@ type shift struct {
 	Minutes   int64
 }
 
+type fun func() error
+
+func handleError(spinner *spinner.Spinner, err error) {
+	if err != nil {
+		spinner.Stop()
+		log.Fatal(err)
+	}
+}
+
 func NewFactorialClient(email, password string, year, month int, in, out string) *factorialClient {
-	s := spinner.New(spinner.CharSets[14], 60*time.Millisecond)
-	s.Suffix = " Logging in..."
-	s.Start()
+	spinner := spinner.New(spinner.CharSets[14], 60*time.Millisecond)
+	spinner.Start()
 	c := new(factorialClient)
 	c.year = year
 	c.month = month
@@ -70,11 +79,15 @@ func NewFactorialClient(email, password string, year, month int, in, out string)
 	}
 	jar, _ := cookiejar.New(&options)
 	c.Client = http.Client{Jar: jar}
-	c.login(email, password)
-	c.setPeriodId()
-	c.setCalendar()
-	c.setShifts()
-	s.Stop()
+	spinner.Suffix = " Logging in..."
+	handleError(spinner, c.login(email, password))
+	spinner.Suffix = " Getting periods data..."
+	handleError(spinner, c.setPeriodId())
+	spinner.Suffix = " Getting calendar data..."
+	handleError(spinner, c.setCalendar())
+	spinner.Suffix = " Getting shifts data..."
+	handleError(spinner, c.setShifts())
+	spinner.Stop()
 	return c
 }
 
@@ -84,6 +97,7 @@ func (c *factorialClient) ClockIn(dry_run bool) {
 	var message string
 	for _, d := range c.calendar {
 		spinner.Restart()
+		spinner.Reverse()
 		t = time.Date(c.year, time.Month(c.month), d.Day, 0, 0, 0, 0, time.UTC)
 		message = fmt.Sprintf("%s... ", t.Format("02 Jan"))
 		spinner.Prefix = message + " "
@@ -106,7 +120,7 @@ func (c *factorialClient) ClockIn(dry_run bool) {
 	fmt.Println("done!")
 }
 
-func (c *factorialClient) login(email, password string) {
+func (c *factorialClient) login(email, password string) error {
 	getCSRFToken := func(resp *http.Response) string {
 		data, _ := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
@@ -141,12 +155,17 @@ func (c *factorialClient) login(email, password string) {
 	}
 	resp, _ = c.PostForm(BASE_URL+"/users/sign_in", body)
 	if err := getLoginError(resp); err != "" {
-		log.Fatal(err)
+		return errors.New(err)
 	}
+	return nil
 }
 
-func (c *factorialClient) setPeriodId() {
+func (c *factorialClient) setPeriodId() error {
+	err := errors.New("Could not find the specified year/month in the available periods (" + strconv.Itoa(c.month) + "/" + strconv.Itoa(c.year) + ")")
 	resp, _ := c.Get(BASE_URL + "/attendance/periods")
+	if resp.StatusCode != 200 {
+		return err
+	}
 	defer resp.Body.Close()
 	var periods []period
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -155,13 +174,13 @@ func (c *factorialClient) setPeriodId() {
 		if p.Year == c.year && p.Month == c.month {
 			c.employee_id = p.Employee_id
 			c.period_id = p.Id
-			return
+			return nil
 		}
 	}
-	log.Fatalf("Could not find the specified year/month in the available periods (%d/%d)\n", c.month, c.year)
+	return err
 }
 
-func (c *factorialClient) setCalendar() {
+func (c *factorialClient) setCalendar() error {
 	u, _ := url.Parse(BASE_URL + "/attendance/calendar")
 	q := u.Query()
 	q.Set("id", strconv.Itoa(c.employee_id))
@@ -169,15 +188,19 @@ func (c *factorialClient) setCalendar() {
 	q.Set("month", strconv.Itoa(c.month))
 	u.RawQuery = q.Encode()
 	resp, _ := c.Get(u.String())
+	if resp.StatusCode != 200 {
+		return errors.New("Error retrieving calendar data")
+	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal(body, &c.calendar)
 	sort.Slice(c.calendar, func(i, j int) bool {
 		return c.calendar[i].Day < c.calendar[j].Day
 	})
+	return nil
 }
 
-func (c *factorialClient) setShifts() {
+func (c *factorialClient) setShifts() error {
 	u, _ := url.Parse(BASE_URL + "/attendance/shifts")
 	q := u.Query()
 	q.Set("employee_id", strconv.Itoa(c.employee_id))
@@ -185,9 +208,13 @@ func (c *factorialClient) setShifts() {
 	q.Set("month", strconv.Itoa(c.month))
 	u.RawQuery = q.Encode()
 	resp, _ := c.Get(u.String())
+	if resp.StatusCode != 200 {
+		return errors.New("Error retrieving shifts data")
+	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal(body, &c.shifts)
+	return nil
 }
 
 func (c *factorialClient) clockedIn(day int) bool {
