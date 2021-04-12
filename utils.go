@@ -13,31 +13,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-const URL_SIGN_IN = "https://factorialhr.com/users/sign_in"
-const URL_CLOCK_IN = "https://app.factorialhr.com/attendance/clock-in"
-const API_URL = "https://api.factorialhr.com"
-
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-var WEEKEND_DAYS = [...]string{
-	"Saturday",
-	"Sunday",
-	"sábado",
-	"domingo",
-	"dissabte",
-	"diumenge",
-	"zaterdag",
-	"zondag",
-	"sabato",
-	"domenica",
-	"lördag",
-	"söndag",
-	"Samstag",
-	"Sonntag",
-	"samedi",
-	"dimanche",
-	"Sábado",
-	"Domingo",
-}
 
 func readCredentials(c *cli.Context) (string, string) {
 	email := c.String("email")
