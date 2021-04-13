@@ -30,3 +30,42 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+# .goreleaser.yml
+brews:
+  -
+    # Name template of the recipe
+    # Default to project name
+    name: factorialsucks
+
+    # GitHub/GitLab repository to push the formula to
+    # Gitea is not supported yet, but the support coming
+    tap:
+      owner: alejoar
+      name: homebrew-tap
+
+    # Template for the url which is determined by the given Token (github or gitlab)
+    # Default for github is "https://github.com/<repo_owner>/<repo_name>/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    # Default for gitlab is "https://gitlab.com/<repo_owner>/<repo_name>/uploads/{{ .ArtifactUploadHash }}/{{ .ArtifactName }}"
+    # Default for gitea is "https://gitea.com/<repo_owner>/<repo_name>/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    url_template: "https://github.com/alejoar/factorialsucks/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+
+    # Folder inside the repository to put the formula.
+    # Default is the root folder.
+    folder: Formula
+
+    # Your app's homepage.
+    # Default is empty.
+    homepage: "https://github.com/alejoar/factorialsucks/"
+
+    # Your app's description.
+    # Default is empty.
+    description: "FactorialHR auto clock in for the whole month from the command line."
+
+    # SPDX identifier of your app's license.
+    # Default is empty.
+    license: "MIT"
+
+    # Custom install script for brew.
+    # Default is 'bin.install "program"'.
+    install: |
+      bin.install "factorialsucks"
