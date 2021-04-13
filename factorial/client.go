@@ -1,6 +1,7 @@
 package factorial
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,12 +50,12 @@ type calendarDay struct {
 }
 
 type shift struct {
-	Id        int64
-	Period_id int64
-	Day       int
-	Clock_in  string
-	Clock_out string
-	Minutes   int64
+	Id        int64  `json:"i6d"`
+	Period_id int64  `json:"period_id"`
+	Day       int    `json:"day"`
+	Clock_in  string `json:"clock_in"`
+	Clock_out string `json:"clock_out"`
+	Minutes   int64  `json:"minutes"`
 }
 
 type fun func() error
@@ -95,6 +96,14 @@ func (c *factorialClient) ClockIn(dry_run bool) {
 	spinner := spinner.New(spinner.CharSets[14], 60*time.Millisecond)
 	var t time.Time
 	var message string
+	var body []byte
+	var shift shift
+	var resp *http.Response
+	var ok bool
+	shift.Period_id = int64(c.period_id)
+	shift.Clock_in = c.clock_in
+	shift.Clock_out = c.clock_out
+	shift.Minutes = 0
 	for _, d := range c.calendar {
 		spinner.Restart()
 		spinner.Reverse()
@@ -108,11 +117,21 @@ func (c *factorialClient) ClockIn(dry_run bool) {
 		} else if !d.Is_laborable {
 			message = fmt.Sprintf("%s ❌ %s\n", message, t.Format("Monday"))
 		} else {
+			ok = true
 			if !dry_run {
-				// clock in here!
+				ok = false
+				shift.Day = d.Day
+				body, _ = json.Marshal(shift)
+				resp, _ = c.Post(BASE_URL+"/attendance/shifts", "application/json;charset=UTF-8", bytes.NewBuffer(body))
+				if resp.StatusCode == 201 {
+					ok = true
+				}
 			}
-			time.Sleep(1e9)
-			message = fmt.Sprintf("%s ✅ %s - %s\n", message, c.clock_in, c.clock_out)
+			if ok {
+				message = fmt.Sprintf("%s ✅ %s - %s\n", message, c.clock_in, c.clock_out)
+			} else {
+				message = fmt.Sprintf("%s ❌ Error when attempting to clock in\n", message)
+			}
 		}
 		spinner.Stop()
 		fmt.Print(message)
