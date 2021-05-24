@@ -15,3 +15,12 @@ optional arguments:
   ```
 
 [![asciicast](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux.svg)](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux)
+
+## Install
+
+### Homebrew
+
+```
+brew tap alejoar/tap
+brew install factorialsucks
+````
