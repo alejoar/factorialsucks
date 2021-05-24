@@ -181,11 +181,11 @@ func (c *factorialClient) login(email, password string) error {
 
 func (c *factorialClient) setPeriodId() error {
 	err := errors.New("Could not find the specified year/month in the available periods (" + strconv.Itoa(c.month) + "/" + strconv.Itoa(c.year) + ")")
-	resp, _ := c.Get(BASE_URL + "/attendance/periods")
+	resp, _ := c.Get(BASE_URL + "/attendance/periods?year=" + strconv.Itoa(c.year) + "&month=" + strconv.Itoa(c.month))
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		return err
 	}
-	defer resp.Body.Close()
 	var periods []period
 	body, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal(body, &periods)
