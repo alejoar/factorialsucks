@@ -2,7 +2,7 @@
 
 ```
 ❯ factorialsucks -h
-usage: factorialsucks [-h] [-y YYYY] [-m MM] [-e user@host.com] [-dr]
+usage: factorialsucks [-h] [-y YYYY] [-m MM] [-ci HH:MM] [-co HH:MM] [-e user@host.com] [-dr]
 
 Factorial auto clock in
 
@@ -10,6 +10,8 @@ optional arguments:
   -h, --help            show this help message and exit
   -y YYYY, --year YYYY
   -m MM, --month MM
+  -ci HH:MM --clock-in HH:MM
+  -co HH:MM --clock-out HH:MM
   -e user@host.com, --email user@host.com
   -dr, --dry-run
   ```
