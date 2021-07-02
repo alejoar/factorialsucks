@@ -2,17 +2,22 @@
 
 ```
 ❯ factorialsucks -h
-usage: factorialsucks [-h] [-y YYYY] [-m MM] [-e user@host.com] [-dr]
 
-Factorial auto clock in
+NAME:
+   factorialsucks - FactorialHR auto clock in for the whole month from the command line
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -y YYYY, --year YYYY
-  -m MM, --month MM
-  -e user@host.com, --email user@host.com
-  -dr, --dry-run
-  ```
+USAGE:
+   factorialsucks [options]
+
+GLOBAL OPTIONS:
+   --email value, -e value        you factorial email address
+   --year YYYY, -y YYYY           clock-in year YYYY (default: current year)
+   --month MM, -m MM              clock-in month MM (default: current month)
+   --clock-in HH:MM, --ci HH:MM   clock-in time HH:MM (default: "10:00")
+   --clock-out HH:MM, --co HH:MM  clock-in time HH:MM (default: "18:00")
+   --dry-run, --dr                do a dry run without actually clocking in (default: false)
+   --help, -h                     show help (default: false)
+```
 
 [![asciicast](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux.svg)](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux)
 
