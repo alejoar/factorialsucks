@@ -15,6 +15,8 @@ GLOBAL OPTIONS:
    --month MM, -m MM              clock-in month MM (default: current month)
    --clock-in HH:MM, --ci HH:MM   clock-in time HH:MM (default: "10:00")
    --clock-out HH:MM, --co HH:MM  clock-in time HH:MM (default: "18:00")
+   --today, -t                    clock in for today only (default: false)
+   --until-today, --ut            clock in only until today (default: false)
    --dry-run, --dr                do a dry run without actually clocking in (default: false)
    --help, -h                     show help (default: false)
 ```
