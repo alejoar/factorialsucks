@@ -104,6 +104,7 @@ func (c *factorialClient) ClockIn(dry_run bool) {
 	var shift shift
 	var resp *http.Response
 	var ok bool
+	now := time.Now()
 	shift.Period_id = int64(c.period_id)
 	shift.Clock_in = c.clock_in
 	shift.Clock_out = c.clock_out
@@ -120,6 +121,10 @@ func (c *factorialClient) ClockIn(dry_run bool) {
 			message = fmt.Sprintf("%s ❌ %s\n", message, d.Leave_name)
 		} else if !d.Is_laborable {
 			message = fmt.Sprintf("%s ❌ %s\n", message, t.Format("Monday"))
+		} else if c.today_only && d.Day != now.Day() {
+			message = fmt.Sprintf("%s ❌ %s\n", message, "Skipping: --today")
+		} else if c.until_today && d.Day > now.Day() {
+			message = fmt.Sprintf("%s ❌ %s\n", message, "Skipping: --until-today")
 		} else {
 			ok = true
 			if !dry_run {
