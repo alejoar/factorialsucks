@@ -50,7 +50,7 @@ type calendarDay struct {
 }
 
 type shift struct {
-	Id        int64  `json:"i6d"`
+	Id        int64  `json:"id"`
 	Period_id int64  `json:"period_id"`
 	Day       int    `json:"day"`
 	Clock_in  string `json:"clock_in"`
