@@ -25,9 +25,14 @@ GLOBAL OPTIONS:
 
 ## Install
 
-### Homebrew
-
 ```
 brew tap alejoar/tap
 brew install factorialsucks
+````
+
+## Update
+
+```
+brew update
+brew upgrade factorialsucks
 ````
