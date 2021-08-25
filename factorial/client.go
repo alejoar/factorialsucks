@@ -31,6 +31,8 @@ type factorialClient struct {
 	month       int
 	clock_in    string
 	clock_out   string
+	today_only  bool
+	until_today bool
 }
 
 type period struct {
@@ -67,7 +69,7 @@ func handleError(spinner *spinner.Spinner, err error) {
 	}
 }
 
-func NewFactorialClient(email, password string, year, month int, in, out string) *factorialClient {
+func NewFactorialClient(email, password string, year, month int, in, out string, today_only, until_today bool) *factorialClient {
 	spinner := spinner.New(spinner.CharSets[14], 60*time.Millisecond)
 	spinner.Start()
 	c := new(factorialClient)
@@ -75,6 +77,8 @@ func NewFactorialClient(email, password string, year, month int, in, out string)
 	c.month = month
 	c.clock_in = in
 	c.clock_out = out
+	c.today_only = today_only
+	c.until_today = until_today
 	options := cookiejar.Options{
 		PublicSuffixList: publicsuffix.List,
 	}

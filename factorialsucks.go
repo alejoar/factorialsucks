@@ -9,9 +9,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+var today time.Time = time.Now()
+
 func main() {
 	log.SetFlags(0)
-	today := time.Now()
 	app := &cli.App{
 		Name:            "factorialsucks",
 		Usage:           "FactorialHR auto clock in for the whole month from the command line",
@@ -53,6 +54,18 @@ func main() {
 				Value:   "18:00",
 			},
 			&cli.BoolFlag{
+				Name:    "today",
+				Aliases: []string{"t"},
+				Usage:   "clock in for today only",
+				Value:   false,
+			},
+			&cli.BoolFlag{
+				Name:    "until-today",
+				Aliases: []string{"ut"},
+				Usage:   "clock in only until today",
+				Value:   false,
+			},
+			&cli.BoolFlag{
 				Name:    "dry-run",
 				Aliases: []string{"dr"},
 				Usage:   "do a dry run without actually clocking in",
@@ -68,14 +81,22 @@ func main() {
 }
 
 func factorialsucks(c *cli.Context) error {
+	var year, month int
 	email, password := readCredentials(c)
-	year := c.Int("year")
-	month := c.Int("month")
+	today_only := c.Bool("today")
+	if today_only {
+		year = today.Year()
+		month = int(today.Month())
+	} else {
+		year = c.Int("year")
+		month = c.Int("month")
+	}
 	clock_in := c.String("clock-in")
 	clock_out := c.String("clock-out")
 	dry_run := c.Bool("dry-run")
+	until_today := c.Bool("until-today")
 
-	client := factorial.NewFactorialClient(email, password, year, month, clock_in, clock_out)
+	client := factorial.NewFactorialClient(email, password, year, month, clock_in, clock_out, today_only, until_today)
 	client.ClockIn(dry_run)
 
 	return nil
