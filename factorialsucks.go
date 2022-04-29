@@ -16,7 +16,7 @@ func main() {
 	app := &cli.App{
 		Name:            "factorialsucks",
 		Usage:           "FactorialHR auto clock in for the whole month from the command line",
-		Version:         "2.0.2",
+		Version:         "2.1",
 		Compiled:        time.Now(),
 		UsageText:       "factorialsucks [options]",
 		HideHelpCommand: true,
