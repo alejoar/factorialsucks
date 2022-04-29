@@ -272,9 +272,9 @@ func (c *factorialClient) ResetMonth() {
 		t = time.Date(c.year, time.Month(c.month), shift.Day, 0, 0, 0, 0, time.UTC)
 		message = fmt.Sprintf("%s... ", t.Format("02 Jan"))
 		if resp.StatusCode != 204 {
-			fmt.Print(fmt.Sprintf("%s ❌ Error when attempting to delete shift: %d, %s - %s\n", message, shift.Day, shift.Clock_in, shift.Clock_out))
+			fmt.Print(fmt.Sprintf("%s ❌ Error when attempting to delete shift: %s - %s\n", message, shift.Clock_in, shift.Clock_out))
 		} else {
-			fmt.Print(fmt.Sprintf("%s ✅ Shift deleted: %d, %s - %s\n", message, shift.Day, shift.Clock_in, shift.Clock_out))
+			fmt.Print(fmt.Sprintf("%s ✅ Shift deleted: %s - %s\n", message, shift.Clock_in, shift.Clock_out))
 		}
 		defer resp.Body.Close()
 	}
