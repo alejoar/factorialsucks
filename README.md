@@ -18,6 +18,7 @@ GLOBAL OPTIONS:
    --today, -t                    clock in for today only (default: false)
    --until-today, --ut            clock in only until today (default: false)
    --dry-run, --dr                do a dry run without actually clocking in (default: false)
+   --reset-month, --rm            delete all shifts for the given month (default: false)
    --help, -h                     show help (default: false)
 ```
 
