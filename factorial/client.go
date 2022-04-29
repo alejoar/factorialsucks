@@ -115,8 +115,9 @@ func (c *factorialClient) ClockIn(dry_run bool) {
 		t = time.Date(c.year, time.Month(c.month), d.Day, 0, 0, 0, 0, time.UTC)
 		message = fmt.Sprintf("%s... ", t.Format("02 Jan"))
 		spinner.Prefix = message + " "
-		if c.clockedIn(d.Day) {
-			message = fmt.Sprintf("%s ❌ Already clocked in\n", message)
+		clocked_in, clocked_times := c.clockedIn(d.Day, shift)
+		if clocked_in {
+			message = fmt.Sprintf("%s ❌ Period overlap: %s\n", message, clocked_times)
 		} else if d.Is_leave {
 			message = fmt.Sprintf("%s ❌ %s\n", message, d.Leave_name)
 		} else if !d.Is_laborable {
@@ -245,11 +246,19 @@ func (c *factorialClient) setShifts() error {
 	return nil
 }
 
-func (c *factorialClient) clockedIn(day int) bool {
+func (c *factorialClient) clockedIn(day int, input_shift shift) (bool, string) {
+	clock_in, _ := strconv.Atoi(strings.Join(strings.Split(input_shift.Clock_in, ":"), ""))
+	clock_out, _ := strconv.Atoi(strings.Join(strings.Split(input_shift.Clock_out, ":"), ""))
 	for _, shift := range c.shifts {
 		if shift.Day == day {
-			return true
+			shift_clock_in, _ := strconv.Atoi(strings.Join(strings.Split(shift.Clock_in, ":"), ""))
+			shift_clock_out, _ := strconv.Atoi(strings.Join(strings.Split(shift.Clock_out, ":"), ""))
+			if (clock_in < shift_clock_in && shift_clock_in < clock_out) ||
+				(clock_in < shift_clock_out && shift_clock_out < clock_out) ||
+				(shift_clock_in <= clock_in && shift_clock_out >= clock_out) {
+				return true, strings.Join([]string{shift.Clock_in, shift.Clock_out}, " - ")
+			}
 		}
 	}
-	return false
+	return false, ""
 }
