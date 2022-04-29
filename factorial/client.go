@@ -262,3 +262,21 @@ func (c *factorialClient) clockedIn(day int, input_shift shift) (bool, string) {
 	}
 	return false, ""
 }
+
+func (c *factorialClient) ResetMonth() {
+	var t time.Time
+	var message string
+	for _, shift := range c.shifts {
+		req, _ := http.NewRequest("DELETE", BASE_URL+"/attendance/shifts/"+strconv.Itoa(int(shift.Id)), nil)
+		resp, _ := c.Do(req)
+		t = time.Date(c.year, time.Month(c.month), shift.Day, 0, 0, 0, 0, time.UTC)
+		message = fmt.Sprintf("%s... ", t.Format("02 Jan"))
+		if resp.StatusCode != 204 {
+			fmt.Print(fmt.Sprintf("%s ❌ Error when attempting to delete shift: %d, %s - %s\n", message, shift.Day, shift.Clock_in, shift.Clock_out))
+		} else {
+			fmt.Print(fmt.Sprintf("%s ✅ Shift deleted: %d, %s - %s\n", message, shift.Day, shift.Clock_in, shift.Clock_out))
+		}
+		defer resp.Body.Close()
+	}
+	fmt.Println("done!")
+}

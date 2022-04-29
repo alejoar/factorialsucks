@@ -70,6 +70,12 @@ func main() {
 				Aliases: []string{"dr"},
 				Usage:   "do a dry run without actually clocking in",
 			},
+			&cli.BoolFlag{
+				Name:    "reset-month",
+				Aliases: []string{"rm"},
+				Usage:   "delete all shifts for the given month",
+				Value:   false,
+			},
 		},
 		Action: factorialsucks,
 	}
@@ -95,9 +101,13 @@ func factorialsucks(c *cli.Context) error {
 	clock_out := c.String("clock-out")
 	dry_run := c.Bool("dry-run")
 	until_today := c.Bool("until-today")
+	reset_month := c.Bool("reset-month")
 
 	client := factorial.NewFactorialClient(email, password, year, month, clock_in, clock_out, today_only, until_today)
-	client.ClockIn(dry_run)
-
+	if reset_month {
+		client.ResetMonth()
+	} else {
+		client.ClockIn(dry_run)
+	}
 	return nil
 }
