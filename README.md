@@ -26,7 +26,7 @@ GLOBAL OPTIONS:
 
 ## Build
 
-Using docker/podman, check `build` target in [Makefile](./Makefile) file.
+Using docker/podman, check `build` target in [Makefile] file.
 
 Native build:
 
@@ -50,5 +50,23 @@ brew upgrade factorialsucks
 
 ## Usage
 
-Using docker/podman, check `run` target in [Makefile](./Makefile) file.
-Change `--help` arg with other options.
+Running `make help` to see the help, options and default values.
+
+If you execute `make run EMAIL=<your@email.com>` this will run the program with
+the given email address and the default values.
+
+If you want to run without `Make`. Check `today_splitshift` target in [Makefile]
+file as a base command.
+
+For example, to submit the current month:
+
+```bash
+docker run \
+   -it \
+   --rm factorialsucks \
+   --email your@email.com \
+   --clock-in 7:00 \
+   --clock-out 15:00
+```
+
+[Makefile]: ./Makefile
