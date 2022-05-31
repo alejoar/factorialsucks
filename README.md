@@ -1,6 +1,6 @@
 # factorialsucks
 
-```
+```shell
 ❯ factorialsucks -h
 
 NAME:
@@ -24,16 +24,31 @@ GLOBAL OPTIONS:
 
 [![asciicast](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux.svg)](https://asciinema.org/a/1wj0X77lfeHqYWZKp2YY86Xux)
 
+## Build
+
+Using docker/podman, check `build` target in [Makefile](./Makefile) file.
+
+Native build:
+
+```bash
+go build -o factorialsucks .
+```
+
 ## Install
 
-```
+```bash
 brew tap alejoar/tap
 brew install factorialsucks
-````
+```
 
 ## Update
 
-```
+```bash
 brew update
 brew upgrade factorialsucks
-````
+```
+
+## Usage
+
+Using docker/podman, check `run` target in [Makefile](./Makefile) file.
+Change `--help` arg with other options.
