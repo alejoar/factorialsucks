@@ -26,12 +26,16 @@ GLOBAL OPTIONS:
 
 ## Build
 
-Using docker/podman, check `build` target in [Makefile] file.
-
-Native build:
+For native build, you can use the following command:
 
 ```bash
 go build -o factorialsucks .
+```
+
+If your prefer use [Makefile], you can use the following command:
+
+```bash
+make build
 ```
 
 ## Install
@@ -50,23 +54,40 @@ brew upgrade factorialsucks
 
 ## Usage
 
-Running `make help` to see the help, options and default values.
-
-If you execute `make run EMAIL=<your@email.com>` this will run the program with
-the given email address and the default values.
-
-If you want to run without `Make`. Check `today_splitshift` target in [Makefile]
-file as a base command.
-
-For example, to submit the current month:
+For example, you can use the following command to clock in for the whole month:
 
 ```bash
-docker run \
-   -it \
-   --rm factorialsucks \
-   --email your@email.com \
-   --clock-in 7:00 \
-   --clock-out 15:00
+./factorialsucks \
+   --email "<your@email.com>" \
+   --month 03 \
+   --clock-in 10:00 \
+   --clock-out 18:00
+```
+
+If your prefer use [Makefile], you can use the following command:
+
+```bash
+make today_continuous
+```
+
+## Docker
+
+### Build with Docker
+
+Using docker/podman, check `build` target in [Makefile] file.
+
+### Use with Docker
+
+There some targets in the [Makefile] to use this program with Docker.
+
+Running `make help` to see the program help, options and default values.
+
+If you execute `make <TARGET> EMAIL=<your@email.com>` this will run the program with the given email address and the default values.
+
+For example, to submit today as split shift with Docker, you can run:
+
+```bash
+make docker_today_splitshift
 ```
 
 [Makefile]: ./Makefile
